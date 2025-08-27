@@ -1,0 +1,5 @@
+#!/bin/sh
+
+set -e
+
+bin/docker/exec vendor/bin/php-cs-fixer fix --allow-risky=yes

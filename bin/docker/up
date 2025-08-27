@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. bin/docker/env
+
+docker compose up --wait "$@"

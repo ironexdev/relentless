@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. bin/docker/env.secret
+
+export USER_ID=$(id -u)
+export GROUP_ID=$(id -u)
+
+# PHP Server
+export SERVER_NAME="http://localhost:80"
+export PHP_DATE_TIMEZONE="UTC"
+
+# DB
+export DB_NAME="relentlessdb"
+export DB_USER="relentlessuser"
+
+echo "✓ Environment variables set."

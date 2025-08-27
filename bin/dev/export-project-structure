@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Creates project-structure.txt file with all folders and files in the project except node_modules, vendor and hidden directories
+
+generate_tree() {
+    local dir="$1"
+    local prefix="$2"
+    local is_last="$3"
+
+    # Print current directory
+    local basename=$(basename "$dir")
+    if [ "$dir" != "." ]; then
+        if [ "$is_last" = "true" ]; then
+            echo "${prefix}└── $basename"
+        else
+            echo "${prefix}├── $basename"
+        fi
+    fi
+
+    # Update prefix for subdirectories
+    local new_prefix="$prefix"
+    if [ "$dir" != "." ]; then
+        if [ "$is_last" = "true" ]; then
+            new_prefix="${prefix}    "
+        else
+            new_prefix="${prefix}│   "
+        fi
+    fi
+
+    # Check if this is node_modules or hidden directory (except current dir)
+    if [[ "$basename" == "node_modules" || "$basename" == "vendor" || ( "$basename" =~ ^\. && "$dir" != "." ) ]]; then
+        return  # Don't traverse into these directories
+    fi
+
+    # Get all entries (files and directories)
+    local entries=()
+    while IFS= read -r -d '' entry; do
+        entries+=("$entry")
+    done < <(find "$dir" -maxdepth 1 -mindepth 1 -print0 | sort -z)
+
+    # Process each entry
+    local count=${#entries[@]}
+    local index=0
+    for entry in "${entries[@]}"; do
+        index=$((index + 1))
+        local is_last_entry=""
+        [ $index -eq $count ] && is_last_entry="true"
+
+        if [ -d "$entry" ]; then
+            generate_tree "$entry" "$new_prefix" "$is_last_entry"
+        else
+            local filename=$(basename "$entry")
+            if [ "$is_last_entry" = "true" ]; then
+                echo "${new_prefix}└── $filename"
+            else
+                echo "${new_prefix}├── $filename"
+            fi
+        fi
+    done
+}
+
+generate_tree "." "" "" >> project-structure.txt
+
+echo "Project structure exported to project-structure.txt"

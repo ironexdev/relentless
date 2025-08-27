@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# This command will delete all containers, images and volumes (if --force is used) on your localhost, not just for this project
+
+docker stop $(docker ps -aq)
+
+if [ "$1" = "--force" ]; then
+    echo "Force deleting volumes..."
+    docker container rm $(docker container ls -aq) --force
+    docker volume rm $(docker volume ls -q) --force
+else
+    docker container rm $(docker container ls -aq) --force
+fi
+
+docker builder prune --force
+docker image rm $(docker image ls -aq) --force
+docker network prune --force
+
+docker system df

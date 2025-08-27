@@ -1,0 +1,106 @@
+services:
+    adminer:
+        image: adminer
+        restart: unless-stopped
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '8083:8080'
+        volumes:
+            - ./adminer.css:/var/www/html/adminer.css
+        depends_on:
+            - db
+        networks:
+            - default
+
+    db:
+        image: postgres:17.5
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${DB_NAME}
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        healthcheck:
+            test: [ 'CMD', 'pg_isready', '-U', '${DB_USER}' ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+        volumes:
+            - 'db_data:/var/lib/postgresql/data'
+        ports:
+            - '5432:5432'
+        networks:
+            - default
+
+    app:
+        build:
+            context: .
+            dockerfile: docker/app/Dockerfile
+            target: app
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
+        user: '${USER_ID}:${GROUP_ID}'
+        restart: unless-stopped
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        volumes:
+            - ./:/app
+            - caddy_data:/data
+            - caddy_config:/config
+        ports:
+            - '80:80'
+        environment:
+            SERVER_NAME: '${SERVER_NAME}'
+            APP_ENV: dev
+            APP_SECRET: '${APP_SECRET}'
+            PHP_DATE_TIMEZONE: '${PHP_DATE_TIMEZONE}'
+            DATABASE_URL: 'postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?serverVersion=17&charset=utf8'
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost/readyz']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 30s
+        depends_on:
+            - db
+        networks:
+            - default
+
+    cron:
+        build:
+            context: .
+            dockerfile: docker/app/Dockerfile
+            target: cron
+            args:
+                USER_ID: ${USER_ID}
+                GROUP_ID: ${GROUP_ID}
+        restart: unless-stopped
+        entrypoint: ['/usr/local/bin/supercronic', '/etc/crontab']
+        environment:
+            APP_ENV: dev
+            APP_SECRET: '${APP_SECRET}'
+            PHP_DATE_TIMEZONE: '${PHP_DATE_TIMEZONE}'
+            TZ: '${PHP_DATE_TIMEZONE}'
+            DATABASE_URL: 'postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?serverVersion=17&charset=utf8'
+        depends_on:
+            - db
+        networks:
+            - default
+        healthcheck:
+            test: ['CMD', 'pgrep', 'supercronic']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+
+volumes:
+    caddy_data:
+    caddy_config:
+    db_data:
+
+networks:
+    default:
+        name: relentless
+        driver: bridge

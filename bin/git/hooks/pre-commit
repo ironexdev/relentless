@@ -1,0 +1,23 @@
+#!/bin/sh
+
+. bin/docker/env
+
+# This script runs before each commit to ensure code quality.
+# Exit immediately if a command fails.
+set -e
+
+echo "Running formatters and linters..."
+
+# 1/ Run backend formatter (PHP-CS-Fixer) inside Docker
+echo "→ Formatting PHP files with PHP-CS-Fixer..."
+bin/docker/exec vendor/bin/php-cs-fixer fix --allow-risky=yes
+
+# 2/ Run backend static analysis (PHPStan) inside Docker
+echo "→ Running static analysis using PHPStan..."
+bin/docker/exec php vendor/bin/phpstan analyse -c phpstan.neon
+
+# 3/ Stage all changes made by the formatters and linters
+echo "→ Staging changes..."
+git add .
+
+echo "✅ Pre-commit hook finished."

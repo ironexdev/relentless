@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Removes all generated files, caches, and dependencies
+
+set -e
+
+echo "🧹 Cleaning project..."
+rm -rf var
+rm -rf vendor
+rm -rf public/build
+rm -rf public/bundles
+
+echo "✨ Cleaning completed successfully!"

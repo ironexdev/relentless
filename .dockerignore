@@ -1,0 +1,42 @@
+### Git ###
+.git
+.github
+.gitignore
+
+### Docker ###
+.dockerignore
+Dockerfile
+compose.yml
+compose.prod.local.yml
+compose.prod.yml
+
+### Dependencies ###
+node_modules/
+vendor/
+
+### Symfony Artifacts ###
+var/
+public/build/
+
+### Local Environment ###
+.env
+.env.local
+.env.*
+!.env.example
+*.log
+
+### IDE & OS ###
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+### Testing ###
+tests/
+test-results/
+playwright-report/
+
+### Documentation & Misc ###
+*.md
+adminer.css
+project-structure.txt

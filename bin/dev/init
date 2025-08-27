@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+echo "🚀 Initializing project"
+
+bin/docker/up
+bin/dev/install
+bin/console doctrine:migrations:migrate --no-interaction
+bin/console doctrine:fixtures:load --no-interaction
+
+echo "✨ Project initialized successfully!"

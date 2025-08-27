@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+echo "Building application production image"
+
+docker build \
+  --target app \
+  -f docker/prod/app/Dockerfile \
+  -t relentless/app:latest .
+
+echo "✅ Application image built successfully."

@@ -1,0 +1,29 @@
+security:
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        main:
+            lazy: true
+            provider: app_user_provider
+            login_link:
+                check_route: app_login_check
+                signature_properties: ['id', 'email']
+                lifetime: 600
+            logout:
+                path: app_logout
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        - { path: ^/, roles: PUBLIC_ACCESS } # TODO use ROLE_USER
+
+when@test:
+    security:
+    # The password_hashers section that was here is now gone.
