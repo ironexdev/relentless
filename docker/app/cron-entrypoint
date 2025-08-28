@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+echo "Cron Entrypoint (Dev)"
+
+# Wait for the database to be ready
+echo "Cron container waiting for database to be ready at $DATABASE_HOST:$DATABASE_PORT"
+while ! nc -z "$DATABASE_HOST" "$DATABASE_PORT"; do
+  sleep 1
+done
+echo "Database is ready! Starting cron."
+
+# Execute the main container command (supercronic)
+exec "$@"

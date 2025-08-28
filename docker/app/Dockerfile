@@ -2,15 +2,14 @@ FROM composer:2 AS cron_builder
 
 WORKDIR /app
 
-# Copy Composer files to leverage Docker layer caching
-COPY composer.json ./
-#COPY composer.lock ./
+# Copy the entire application source code
+COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-scripts --optimize-autoloader
 
-# Copy the rest of the application source code
-COPY . .
+# Install Symfony assets
+RUN php bin/console assets:install public
 
 FROM dunglas/frankenphp:1-php8.4-alpine AS base
 
@@ -25,7 +24,7 @@ RUN set -eux; \
 RUN set -eux; \
     TARGET_NAME=dockeruser; \
     \
-    # Find the existing group name for the target GID by parsing /etc/group
+    # Find the existing group name for the target GID by parsing /etc/group \
     OLD_GROUP_NAME=$(awk -F: -v gid="${GROUP_ID}" '$3 == gid {print $1}' /etc/group); \
     \
     if [ -z "$OLD_GROUP_NAME" ]; then \
@@ -38,7 +37,7 @@ RUN set -eux; \
         echo "Group '$TARGET_NAME' with GID ${GROUP_ID} already exists."; \
     fi; \
     \
-    # Find the existing user name for the target UID by parsing /etc/passwd
+    # Find the existing user name for the target UID by parsing /etc/passwd \
     OLD_USER_NAME=$(awk -F: -v uid="${USER_ID}" '$3 == uid {print $1}' /etc/passwd); \
     \
     if [ -z "$OLD_USER_NAME" ]; then \
@@ -60,6 +59,13 @@ RUN chown -R dockeruser:dockeruser /data /config
 FROM base AS app
 
 USER dockeruser
+
+COPY --from=cron_builder --chown=dockeruser:dockeruser /app /app
+
+COPY --chown=dockeruser:dockeruser docker/app/app-entrypoint /usr/local/bin/app-entrypoint
+RUN chmod +x /usr/local/bin/app-entrypoint
+ENTRYPOINT ["app-entrypoint"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
 # ---- Cron Stage ----
 FROM base AS cron
@@ -83,3 +89,8 @@ RUN mkdir -p /app/var && chown -R dockeruser:dockeruser /app/var
 
 # Set the user
 USER dockeruser
+
+COPY --chown=dockeruser:dockeruser docker/app/cron-entrypoint /usr/local/bin/cron-entrypoint
+RUN chmod +x /usr/local/bin/cron-entrypoint
+ENTRYPOINT ["cron-entrypoint"]
+CMD ["/usr/local/bin/supercronic", "/etc/crontab"]

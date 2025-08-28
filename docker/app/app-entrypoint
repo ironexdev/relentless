@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set -e
+
+echo "App Entrypoint (Dev)"
+
+if [ "$1" = 'frankenphp' ]; then
+    echo "Waiting for database to be ready at $DATABASE_HOST:$DATABASE_PORT"
+
+    # Use netcat to check if the database port is open
+    while ! nc -z "$DATABASE_HOST" "$DATABASE_PORT"; do
+      sleep 1
+    done
+
+    echo "Database is ready!"
+
+    echo "Running database migrations"
+    php bin/console.php doctrine:migrations:migrate --no-interaction
+    echo "Migrations finished"
+
+    echo "Running database fixtures"
+    php bin/console.php doctrine:fixtures:load --no-interaction
+fi
+
+# Execute the main container command
+exec "$@"
