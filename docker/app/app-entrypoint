@@ -17,8 +17,10 @@ if [ "$1" = 'frankenphp' ]; then
     echo "Running database migrations"
     php bin/console.php doctrine:migrations:migrate --no-interaction
 
-    echo "Running database fixtures"
-    php bin/console.php doctrine:fixtures:load --no-interaction
+    if [ "$APP_ENV" != "prod" ]; then
+        echo "Running database fixtures"
+        php bin/console.php doctrine:fixtures:load --no-interaction
+    fi
 fi
 
 # Execute the main container command

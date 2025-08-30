@@ -6,6 +6,7 @@ export USER_ID=$(id -u)
 export GROUP_ID=$(id -u)
 
 # App
+export APP_ENV=dev
 export SERVER_NAME="http://localhost:80"
 export PHP_DATE_TIMEZONE="UTC"
 export CORS_ALLOW_ORIGIN=['http://localhost']

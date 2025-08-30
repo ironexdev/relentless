@@ -29,7 +29,7 @@ services:
         volumes:
             - 'db_data:/var/lib/postgresql/data'
         ports:
-            - '${DATABASE_PORT}:${DATABASE_PORT}'
+            - ${DATABASE_PORT}:${DATABASE_PORT}
         networks:
             - default
 
@@ -41,7 +41,7 @@ services:
             args:
                 USER_ID: ${USER_ID}
                 GROUP_ID: ${GROUP_ID}
-        user: '${USER_ID}:${GROUP_ID}'
+        user: ${USER_ID}:${GROUP_ID}
         restart: unless-stopped
         extra_hosts:
             - 'host.docker.internal:host-gateway'
@@ -52,10 +52,10 @@ services:
         ports:
             - '80:80'
         environment:
-            SERVER_NAME: '${SERVER_NAME}'
-            APP_ENV: dev
-            APP_SECRET: '${APP_SECRET}'
-            PHP_DATE_TIMEZONE: '${PHP_DATE_TIMEZONE}'
+            SERVER_NAME: ${SERVER_NAME}
+            APP_ENV: ${APP_ENV}
+            APP_SECRET: ${APP_SECRET}
+            PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
             DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
             DATABASE_HOST: ${DATABASE_HOST}
             DATABASE_PORT: ${DATABASE_PORT}
@@ -83,10 +83,10 @@ services:
         restart: unless-stopped
         entrypoint: ['/usr/local/bin/supercronic', '/etc/crontab']
         environment:
-            APP_ENV: dev
-            APP_SECRET: '${APP_SECRET}'
-            PHP_DATE_TIMEZONE: '${PHP_DATE_TIMEZONE}'
-            TZ: '${PHP_DATE_TIMEZONE}'
+            APP_ENV: ${APP_ENV}
+            APP_SECRET: ${APP_SECRET}
+            PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
+            TZ: ${PHP_DATE_TIMEZONE}
             DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
             DATABASE_HOST: ${DATABASE_HOST}
             DATABASE_PORT: ${DATABASE_PORT}
