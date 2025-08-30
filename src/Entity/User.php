@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Helper\ActiveTrait;
 use App\Entity\Helper\CreatedAtTrait;
 use App\Entity\Helper\PrimaryKeyTrait;
@@ -14,6 +15,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource]
 class User implements UserInterface
 {
     use PrimaryKeyTrait;
@@ -21,8 +23,11 @@ class User implements UserInterface
     use UpdatedAtTrait;
     use ActiveTrait;
 
+    /**
+     * @var non-empty-string
+     */
     #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
+    private string $email;
 
     #[ORM\Column(length: 180)]
     private ?string $username = null;
@@ -47,18 +52,22 @@ class User implements UserInterface
 
     /**
      * A visual identifier that represents this user.
+     *
      * @see UserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
 
+    /**
+     * @param non-empty-string $email
+     */
     public function setEmail(string $email): static
     {
         $this->email = $email;

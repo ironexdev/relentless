@@ -34,3 +34,6 @@ node_modules/
 project-structure.txt
 .env
 .DS_Store
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###

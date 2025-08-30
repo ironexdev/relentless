@@ -1,0 +1,21 @@
+api_platform:
+  title: Relentless
+  version: 1.0.0
+  defaults:
+    stateless: true
+    cache_headers:
+        vary: ['Content-Type', 'Authorization', 'Origin']
+  graphql:
+    enabled: true
+    default_ide: 'graphiql'
+    graphiql: true
+    introspection:
+      enabled: true
+
+# API Platform resolves config values during compile time so using env vars (that are resolved at runtime when using resolver like "bool") is not feasible
+when@prod:
+  api_platform:
+    graphql:
+      graphiql: false
+      introspection:
+        enabled: false
