@@ -63,14 +63,17 @@ USER dockeruser
 COPY --from=cron_builder --chown=dockeruser:dockeruser /app /app
 
 COPY --chown=dockeruser:dockeruser docker/app/app-entrypoint /usr/local/bin/app-entrypoint
+
 RUN chmod +x /usr/local/bin/app-entrypoint
+
 ENTRYPOINT ["app-entrypoint"]
+
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
 # ---- Cron Stage ----
 FROM base AS cron
 
-ARG SUPERCRONIC_VERSION=v0.2.29
+ARG SUPERCRONIC_VERSION=v0.2.34
 ARG TARGETARCH=amd64
 
 # Install supercronic
@@ -91,6 +94,9 @@ RUN mkdir -p /app/var && chown -R dockeruser:dockeruser /app/var
 USER dockeruser
 
 COPY --chown=dockeruser:dockeruser docker/app/cron-entrypoint /usr/local/bin/cron-entrypoint
+
 RUN chmod +x /usr/local/bin/cron-entrypoint
+
 ENTRYPOINT ["cron-entrypoint"]
+
 CMD ["/usr/local/bin/supercronic", "/etc/crontab"]

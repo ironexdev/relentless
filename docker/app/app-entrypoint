@@ -16,7 +16,6 @@ if [ "$1" = 'frankenphp' ]; then
 
     echo "Running database migrations"
     php bin/console.php doctrine:migrations:migrate --no-interaction
-    echo "Migrations finished"
 
     echo "Running database fixtures"
     php bin/console.php doctrine:fixtures:load --no-interaction

@@ -10,7 +10,10 @@ export SERVER_NAME="http://localhost:80"
 export PHP_DATE_TIMEZONE="UTC"
 
 # DB
-export DB_NAME="relentlessdb"
-export DB_USER="relentlessuser"
+export DATABASE_VERSION="17.5"
+export DATABASE_HOST="db"
+export DATABASE_PORT=5432
+export DATABASE_NAME="relentlessdb"
+export DATABASE_USER="relentlessuser"
 
 echo "✓ Environment variables set."
