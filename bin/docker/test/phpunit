@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Command to run inside the container's new shell.
+# It exports the variable, then runs the PHP script with all arguments.
+CMD='export SYMFONY_DOCKER_ENTRYPOINT=1; exec php bin/phpunit.php "$@"'
+
+# Call the generic executor to run the command string within a new shell ('sh -c').
+# The final "$@" passes this script's arguments to the inner shell.
+exec ./bin/docker/test/exec sh -c "$CMD" sh "$@"

@@ -31,11 +31,6 @@ public/build/
 .DS_Store
 Thumbs.db
 
-### Testing ###
-tests/
-test-results/
-playwright-report/
-
 ### Documentation & Misc ###
 *.md
 adminer.css

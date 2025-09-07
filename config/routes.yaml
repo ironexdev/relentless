@@ -1,9 +1,5 @@
 controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
-
-api_graphql_entrypoint:
-  path: /graphql
-  controller: api_platform.graphql.action.entrypoint
+  resource:
+    path: ../src/Controller/
+    namespace: App\Controller
+  type: attribute

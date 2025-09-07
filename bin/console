@@ -1,9 +1,21 @@
-#!/bin/sh
+#!/usr/bin/env php
+<?php
 
-# Command to run inside the container's new shell.
-# It exports the variable, then runs the PHP script with all arguments.
-CMD='export SYMFONY_DOCKER_ENTRYPOINT=1; exec php bin/console.php "$@"'
+use App\Kernel;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 
-# Call the generic executor to run the command string within a new shell ('sh -c').
-# The final "$@" passes this script's arguments to the inner shell.
-exec ./bin/docker/exec sh -c "$CMD" sh "$@"
+if (!is_dir(dirname(__DIR__).'/vendor')) {
+    throw new LogicException('Dependencies are missing. Try running "composer install".');
+}
+
+if (!is_file(dirname(__DIR__).'/vendor/autoload_runtime.php')) {
+    throw new LogicException('Symfony Runtime is missing. Try running "composer require symfony/runtime".');
+}
+
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
+
+return function (array $context) {
+    $kernel = new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+
+    return new Application($kernel);
+};

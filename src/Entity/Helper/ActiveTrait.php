@@ -8,13 +8,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait ActiveTrait
 {
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $active = true {
-        get {
-            return $this->active;
-        }
-        set {
-            $this->active = $value;
-        }
+    #[ORM\Column(options: ['default' => false])]
+    public bool $active = false {
+        get => $this->active;
+        set => (bool) $value;
     }
 }

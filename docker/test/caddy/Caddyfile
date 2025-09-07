@@ -1,0 +1,10 @@
+{
+    order vulcain before respond
+}
+
+http://localhost {
+    vulcain
+    root * public
+    encode zstd br gzip
+    php_server
+}

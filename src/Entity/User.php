@@ -3,19 +3,28 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use App\Entity\Helper\ActiveTrait;
 use App\Entity\Helper\CreatedAtTrait;
 use App\Entity\Helper\PrimaryKeyTrait;
 use App\Entity\Helper\UpdatedAtTrait;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\HasLifecycleCallbacks]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+    ],
+    normalizationContext: ['groups' => ['user:read']],
+)]
 class User implements UserInterface
 {
     use PrimaryKeyTrait;
@@ -23,14 +32,13 @@ class User implements UserInterface
     use UpdatedAtTrait;
     use ActiveTrait;
 
-    /**
-     * @var non-empty-string
-     */
-    #[ORM\Column(length: 180, unique: true)]
-    private string $email;
+    #[ORM\Column(length: 320, unique: true)]
+    #[Groups(['user:read'])]
+    public string $email;
 
-    #[ORM\Column(length: 180)]
-    private ?string $username = null;
+    #[ORM\Column(length: 16, nullable: true)]
+    #[Groups(['user:read'])]
+    public ?string $username = null;
 
     /**
      * @var list<string> The user roles
@@ -38,41 +46,23 @@ class User implements UserInterface
     #[ORM\Column]
     private array $roles = [];
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
+    /**
+     * @var Collection<int, RefreshToken>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RefreshToken::class, cascade: ['persist', 'remove'])]
+    private Collection $refreshTokens;
 
-    public function setUsername(string $username): static
+    public function __construct()
     {
-        $this->username = $username;
-
-        return $this;
+        $this->refreshTokens = new ArrayCollection();
     }
 
     /**
      * A visual identifier that represents this user.
-     *
-     * @see UserInterface
      */
     public function getUserIdentifier(): string
     {
         return $this->email;
-    }
-
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    /**
-     * @param non-empty-string $email
-     */
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-
-        return $this;
     }
 
     /**
@@ -92,6 +82,31 @@ class User implements UserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RefreshToken>
+     */
+    public function getRefreshTokens(): Collection
+    {
+        return $this->refreshTokens;
+    }
+
+    public function addRefreshToken(RefreshToken $refreshToken): static
+    {
+        if (!$this->refreshTokens->contains($refreshToken)) {
+            $this->refreshTokens->add($refreshToken);
+            $refreshToken->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRefreshToken(RefreshToken $refreshToken): static
+    {
+        $this->refreshTokens->removeElement($refreshToken);
 
         return $this;
     }

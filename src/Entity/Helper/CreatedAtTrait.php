@@ -9,19 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 trait CreatedAtTrait
 {
     #[ORM\Column(nullable: false)]
-    private ?\DateTimeImmutable $createdAt;
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        if (null === $this->createdAt) {
-            throw new \RuntimeException('This entity has not been persisted yet.');
-        }
-
-        return $this->createdAt;
-    }
+    public ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\PrePersist]
-    public function setCreatedAt(): void
+    public function initializeCreatedAtOnPersist(): void
     {
         $this->createdAt = new \DateTimeImmutable();
     }

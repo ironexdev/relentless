@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+echo "App Entrypoint (Dev)"
+
+if [ "$1" = 'frankenphp' ]; then
+    echo "Waiting for database to be ready at $DATABASE_HOST:$DATABASE_PORT"
+
+    # Use netcat to check if the database port is open
+    while ! nc -z "$DATABASE_HOST" "$DATABASE_PORT"; do
+      sleep 1
+    done
+
+    echo "Database is ready!"
+
+    if [ ! -d "migrations" ] || [ -z "$(ls -A migrations/*.php 2>/dev/null)" ]; then
+        echo "No migrations found. Creating initial migration."
+        php bin/console doctrine:migrations:diff --no-interaction
+    fi
+
+    echo "Running database migrations"
+    php bin/console doctrine:migrations:migrate --no-interaction
+
+    # if [ "$APP_ENV" != "prod" ]; then
+    #     echo "Running database fixtures"
+    #     php bin/console doctrine:fixtures:load --no-interaction
+    # fi
+fi
+
+# Execute the main container command
+exec "$@"

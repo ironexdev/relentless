@@ -1,10 +1,12 @@
 parameters:
-  app.graphql_introspection_enabled: '%env(bool:GRAPHQL_ENABLE_INTROSPECTION)%'
 
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    bind:
+      $mailerFrom: '%env(MAILER_FROM)%'
+      $refreshTokenTtl: '%gesdinet_jwt_refresh_token.ttl%'
 
-    App\:
-        resource: '../src/'
+  App\:
+    resource: '../src/'

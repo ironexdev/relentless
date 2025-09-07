@@ -1,5 +1,0 @@
-#!/bin/sh
-
-. bin/docker/env
-
-docker compose down --remove-orphans "$@"

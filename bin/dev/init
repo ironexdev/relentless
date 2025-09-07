@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -e
-
-echo "🚀 Initializing project"
-
-bin/docker/up
-
-echo "✨ Project initialized successfully!"

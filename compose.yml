@@ -1,113 +1,122 @@
 services:
-    adminer:
-        image: adminer
-        restart: unless-stopped
-        extra_hosts:
-            - 'host.docker.internal:host-gateway'
-        ports:
-            - '8083:8080'
-        volumes:
-            - ./adminer.css:/var/www/html/adminer.css
-        depends_on:
-            - db
-        networks:
-            - default
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '8083:8080'
+    volumes:
+      - ./adminer.css:/var/www/html/adminer.css
+    depends_on:
+      - db
+    networks:
+      - default
 
-    db:
-        image: postgres:${DATABASE_VERSION}
-        restart: unless-stopped
-        environment:
-            POSTGRES_DB: ${DATABASE_NAME}
-            POSTGRES_USER: ${DATABASE_USER}
-            POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-        healthcheck:
-            test: [ 'CMD', 'pg_isready', '-U', '${DATABASE_USER}' ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 30s
-        volumes:
-            - 'db_data:/var/lib/postgresql/data'
-        ports:
-            - ${DATABASE_PORT}:${DATABASE_PORT}
-        networks:
-            - default
+  db:
+    image: postgres:${DATABASE_VERSION}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    healthcheck:
+      test: [ 'CMD', 'pg_isready', '-U', '${DATABASE_USER}' ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - 'db_data:/var/lib/postgresql/data'
+    ports:
+      - 5432:${DATABASE_PORT}
+    networks:
+      - default
 
-    app:
-        build:
-            context: .
-            dockerfile: docker/app/Dockerfile
-            target: app
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        user: ${USER_ID}:${GROUP_ID}
-        restart: unless-stopped
-        extra_hosts:
-            - 'host.docker.internal:host-gateway'
-        volumes:
-            - ./:/app
-            - caddy_data:/data
-            - caddy_config:/config
-        ports:
-            - '80:80'
-        environment:
-            SERVER_NAME: ${SERVER_NAME}
-            APP_ENV: ${APP_ENV}
-            APP_SECRET: ${APP_SECRET}
-            PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
-            DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
-            DATABASE_HOST: ${DATABASE_HOST}
-            DATABASE_PORT: ${DATABASE_PORT}
-            CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN}
-            GRAPHQL_ENABLE_INTROSPECTION: ${GRAPHQL_ENABLE_INTROSPECTION}
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost/readyz']
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 30s
-        depends_on:
-            - db
-        networks:
-            - default
+  app:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+      target: app
+      args:
+        APP_ENV: ${APP_ENV}
+        APP_SECRET: ${APP_SECRET}
+        DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    user: ${USER_ID}:${GROUP_ID}
+    restart: unless-stopped
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_SECRET: ${APP_SECRET}
+      SERVER_NAME: ${SERVER_NAME}
+      PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
+      DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN}
+      MAILER_DSN: ${MAILER_DSN}
+      MAILER_FROM: ${MAILER_FROM}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE}
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost/readyz' ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - ./:/app
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - 80:${APP_PORT}
+    networks:
+      - default
+    depends_on:
+      - db
 
-    cron:
-        build:
-            context: .
-            dockerfile: docker/app/Dockerfile
-            target: cron
-            args:
-                USER_ID: ${USER_ID}
-                GROUP_ID: ${GROUP_ID}
-        restart: unless-stopped
-        entrypoint: ['/usr/local/bin/supercronic', '/etc/crontab']
-        environment:
-            APP_ENV: ${APP_ENV}
-            APP_SECRET: ${APP_SECRET}
-            PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
-            TZ: ${PHP_DATE_TIMEZONE}
-            DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
-            DATABASE_HOST: ${DATABASE_HOST}
-            DATABASE_PORT: ${DATABASE_PORT}
-            CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN}
-        depends_on:
-            - db
-        networks:
-            - default
-        healthcheck:
-            test: ['CMD', 'pgrep', 'supercronic']
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 10s
+  cron:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+      target: cron
+      args:
+        APP_ENV: ${APP_ENV}
+        APP_SECRET: ${APP_SECRET}
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    restart: unless-stopped
+    entrypoint: [ '/usr/local/bin/supercronic', '/etc/crontab' ]
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_SECRET: ${APP_SECRET}
+      PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
+      TZ: ${PHP_DATE_TIMEZONE}
+      DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN}
+    depends_on:
+      - db
+    networks:
+      - default
+    healthcheck:
+      test: [ 'CMD', 'pgrep', 'supercronic' ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
-    caddy_data:
-    caddy_config:
-    db_data:
+  caddy_data:
+  caddy_config:
+  db_data:
 
 networks:
-    default:
-        name: relentless
-        driver: bridge
+  default:
+    name: relentless
+    driver: bridge

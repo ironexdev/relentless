@@ -1,0 +1,21 @@
+#!/bin/sh
+
+. bin/docker/test/env.secret
+
+# App
+export APP_ENV=test
+export APP_PORT=80
+export SERVER_NAME="http://localhost:80"
+export PHP_DATE_TIMEZONE="UTC"
+export CORS_ALLOW_ORIGIN=['http://localhost']
+export JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+export JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+
+# DB
+export DATABASE_VERSION="17.5"
+export DATABASE_HOST="db"
+export DATABASE_PORT=5432
+export DATABASE_NAME="relentlessdb"
+export DATABASE_USER="relentlessuser"
+
+echo "✓ Test environment variables set."

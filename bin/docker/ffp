@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# Fix file permissions between filesystems on localhost and in Docker
-
-docker compose run --rm app chown -R $(id -u):$(id -g) .

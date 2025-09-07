@@ -1,0 +1,83 @@
+services:
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '8083:8080'
+    volumes:
+      - ./adminer.css:/var/www/html/adminer.css
+    depends_on:
+      - db
+    networks:
+      - default
+
+  db:
+    image: postgres:${DATABASE_VERSION}
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    healthcheck:
+      test: [ 'CMD', 'pg_isready', '-U', '${DATABASE_USER}' ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - 'db_test_data:/var/lib/postgresql/data'
+    ports:
+      - 5433:${DATABASE_PORT}
+    networks:
+      - default
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/test/Dockerfile
+      target: app
+      args:
+        APP_ENV: ${APP_ENV}
+        APP_SECRET: ${APP_SECRET}
+        DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_SECRET: ${APP_SECRET}
+      SERVER_NAME: ${SERVER_NAME}
+      PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE}
+      DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?serverVersion=${DATABASE_VERSION}&charset=utf8'
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN}
+      MAILER_DSN: ${MAILER_DSN}
+      MAILER_FROM: ${MAILER_FROM}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE}
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost/readyz' ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - 80:${APP_PORT}
+    networks:
+      - default
+    depends_on:
+      - db
+
+volumes:
+  caddy_data:
+  caddy_config:
+  db_test_data:
+
+networks:
+  default:
+    name: relentless_test
+    driver: bridge

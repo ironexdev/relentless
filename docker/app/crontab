@@ -1,2 +1,0 @@
-* * * * * php bin/console.php about > /proc/1/fd/1 2>/proc/1/fd/2
-# Leave an empty line at the end of this file

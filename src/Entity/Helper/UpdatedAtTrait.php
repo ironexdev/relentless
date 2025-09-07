@@ -9,20 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 trait UpdatedAtTrait
 {
     #[ORM\Column(nullable: false)]
-    private ?\DateTimeImmutable $updatedAt;
-
-    public function getUpdatedAt(): \DateTimeImmutable
-    {
-        if (null === $this->updatedAt) {
-            throw new \RuntimeException('This entity has not been persisted yet.');
-        }
-
-        return $this->updatedAt;
-    }
+    public ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
-    public function setUpdatedAt(): void
+    public function updateTimestampOnPersistOrUpdate(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
     }

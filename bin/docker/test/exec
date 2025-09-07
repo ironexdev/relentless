@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. bin/docker/test/env
+
+docker compose -f compose.test.yml exec -T app "$@"

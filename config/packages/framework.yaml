@@ -1,15 +1,13 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
-    secret: '%env(APP_SECRET)%'
+  secret: '%env(APP_SECRET)%'
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
-
-    #esi: true
-    #fragments: true
+  session:
+    enabled: false
 
 when@test:
-    framework:
-        test: true
-        session:
-            storage_factory_id: session.storage.factory.mock_file
+  framework:
+    test: true
+    session:
+      # The test client requires a session handler to exist. This mock handler
+      # is stateless and fast, ensuring tests don't affect each other.
+      storage_factory_id: session.storage.factory.mock_file

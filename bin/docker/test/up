@@ -1,0 +1,10 @@
+#!/bin/sh
+
+. bin/docker/test/env
+
+set -e
+
+echo "🚀 Starting services in test mode"
+
+# Launch the stack
+docker compose -f compose.test.yml up --wait "$@"
